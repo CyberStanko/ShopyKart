@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Checkbox } from "../components/ui/checkbox"
 import { Link, useNavigate } from "react-router-dom"
+import{axios} from 'axios';
 
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -17,15 +18,7 @@ export default function SignUpPage() {
     password: "",
     confirmPassword: "",
   })
-  // npm i axios
-  // import{axios} from 'axios';
-  // axios.post("http://localhost:5000/",formData)
-  // .then((res)=>{
-  //   console.log(res.data.message);
-  // })
-  // .catch((err)={
-  //   console.log(err);
-  // })
+  
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [subscribeNewsletter, setSubscribeNewsletter] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
