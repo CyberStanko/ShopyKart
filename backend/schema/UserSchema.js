@@ -6,7 +6,7 @@ const userCred = mongoose.Schema({
         type:String,
         require:true
     },
-    mail:{
+    email:{
         type:String,
         require:true
     },
@@ -14,6 +14,10 @@ const userCred = mongoose.Schema({
         type:String,
         require:true
     },
+    role:{
+        type:String,
+        require:true
+    }
 });
 
 module.exports = mongoose.model('users',userCred);

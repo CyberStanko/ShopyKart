@@ -3,12 +3,13 @@ import { useNavigate, Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Eye, EyeOff, Lock, ArrowLeft, Sparkles, User } from "lucide-react"
 import { AppContext } from "../App"
+import axios from'axios';
 
 const LoginPage = () => {
   const { login } = useContext(AppContext)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   })
   const [rememberMe, setRememberMe] = useState(false)
@@ -22,22 +23,32 @@ const LoginPage = () => {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
+  e.preventDefault()
+  setIsLoading(true)
+  setError("")
 
-    // Simulate API call delay
-    setTimeout(() => {
-      const success = login(formData.username, formData.password)
-      setIsLoading(false)
+  try {
+    const res = await axios.post("http://localhost:5000/login", {
+      email: formData.email,   // or `formData.email`
+      password: formData.password,
+    })
 
-      if (success) {
-        navigate("/")
-      } else {
-        setError("Invalid credentials. Try: stanko/2207 or admin/admin123")
-      }
-    }, 1000)
+    setIsLoading(false)
+
+    if (res.data && res.data.userId) {
+      // Redirect to user-specific page
+      navigate(`/${res.data.userId}`)
+    } else {
+      setError("Invalid credentials. Try again.")
+    }
+  } catch (err) {
+    console.error(err)
+    setIsLoading(false)
+    setError("Invalid credentials. Try again.")
   }
+}
+
+
 
   return (
     <motion.div
@@ -85,14 +96,14 @@ const LoginPage = () => {
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
-                    placeholder="Enter your username"
-                    value={formData.username}
-                    onChange={(e) => handleInputChange("username", e.target.value)}
+                    placeholder="Enter your Email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300"
                     required
                   />
@@ -204,8 +215,8 @@ const LoginPage = () => {
 
               <div className="text-center">
                 <span className="text-gray-600">Don't have an account? </span>
-                <Link to="/contact" className="text-primary hover:text-primary/80 font-medium">
-                  Contact us to sign up
+                <Link to="/signup" className="text-primary hover:text-primary/80 font-medium">
+                  Sign Up
                 </Link>
               </div>
             </form>

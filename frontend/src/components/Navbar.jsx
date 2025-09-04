@@ -16,6 +16,7 @@ import {
   Phone,
   Grid3X3,
   UserCircle,
+  User2Icon,
 } from "lucide-react"
 import { AppContext } from "../App"
 
@@ -46,6 +47,8 @@ const Navbar = () => {
     { name: "Home", path: "/", icon: Home },
     { name: "Categories", path: "/categories", icon: Grid3X3 },
     { name: "Contact", path: "/contact", icon: Phone },
+    { name: "User", path: "/user", icon: user},
+    { name: "Admin", path: "/admin", icon: User2Icon}
   ]
 
   return (

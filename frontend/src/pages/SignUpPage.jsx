@@ -6,17 +6,15 @@ import { Input } from "../components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Checkbox } from "../components/ui/checkbox"
 import { Link, useNavigate } from "react-router-dom"
-import{axios} from 'axios';
+import axios from 'axios';
 
 export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
     password: "",
-    confirmPassword: "",
   })
   
   const [agreeToTerms, setAgreeToTerms] = useState(false)
@@ -28,25 +26,46 @@ export default function SignUpPage() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!")
-      return
-    }
-    if (!agreeToTerms) {
-      alert("Please agree to the terms and conditions")
-      return
-    }
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault()
+  //   if (formData.password !== formData.confirmPassword) {
+  //     alert("Passwords don't match!")
+  //     return
+  //   }
+  //   if (!agreeToTerms) {
+  //     alert("Please agree to the terms and conditions")
+  //     return
+  //   }
 
-    setIsLoading(true)
+  //   setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      navigate("/signin")
-    }, 2000)
+  //   // Simulate API call
+  //   setTimeout(() => {
+  //     setIsLoading(false)
+  //     navigate("/signin")
+  //   }, 2000)
+  // }
+const handleSubmit = async (e) => {
+  e.preventDefault()
+
+  if (!agreeToTerms) {
+    alert("Please agree to the terms and conditions")
+    return
   }
+
+  setIsLoading(true)
+
+  try {
+    const res = await axios.post("http://localhost:5000/signup", formData)
+    alert(res.data.message)
+    navigate("/login")
+  } catch (err) {
+    console.error(err)
+    alert("Signup failed. Please try again.")
+  } finally {
+    setIsLoading(false)
+  }
+}
 
   const passwordStrength = (password) => {
     let strength = 0
@@ -130,30 +149,16 @@ export default function SignUpPage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <Input
                         type="text"
-                        placeholder="First name"
-                        value={formData.firstName}
-                        onChange={(e) => handleInputChange("firstName", e.target.value)}
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        type="text"
-                        placeholder="Last name"
-                        value={formData.lastName}
-                        onChange={(e) => handleInputChange("lastName", e.target.value)}
+                        placeholder="Full name"
+                        value={formData.name}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
                         className="pl-10"
                         required
                       />
@@ -219,7 +224,7 @@ export default function SignUpPage() {
                   )}
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -248,7 +253,7 @@ export default function SignUpPage() {
                       Passwords match
                     </p>
                   )}
-                </div>
+                </div> */}
 
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2">

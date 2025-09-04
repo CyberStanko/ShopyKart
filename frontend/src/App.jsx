@@ -36,6 +36,8 @@ import ProductDetailsPage from "./pages/ProductDetailsPage"
 import CategoriesPage from "./pages/CategoriesPage"
 import AdminPage from "./pages/AdminPage"
 import CheckoutPage from "./pages/CheckoutPage"
+import SignupPage from "./pages/SignUpPage"
+
 
 // Context for global state management
 export const AppContext = React.createContext()
@@ -893,8 +895,9 @@ function App() {
           </AnimatePresence>
           
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/:id" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/categories" element={<CategoriesPage />} />
