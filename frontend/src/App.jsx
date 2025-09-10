@@ -734,7 +734,10 @@ const sampleUsers = [
 
 // Main App Component
 function App() {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(() => {
+    const stored = localStorage.getItem("user")
+    return stored ? JSON.parse(stored) : null
+  })
   const [cartItems, setCartItems] = useState([])
   const [wishlistItems, setWishlistItems] = useState([])
   const [notifications, setNotifications] = useState([])
@@ -742,6 +745,7 @@ function App() {
   const [users, setUsers] = useState(sampleUsers)
   const [isLoading, setIsLoading] = useState(true)
   
+
   // Simulate loading
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000)
@@ -751,13 +755,17 @@ function App() {
   const login = (username, password) => {
     // Check for admin credentials
     if (username === 'stanko' && password === '2207') {
-      setUser({ username: 'stanko', role: 'admin', name: 'Admin User' })
+      const userObj = { username: 'stanko', role: 'admin', name: 'Admin User' }
+      setUser(userObj)
+      localStorage.setItem("user", JSON.stringify(userObj))
       showNotification("Admin login successful!", "success")
       return true
     }
     // Check for user credentials
     else if (username === 'abc' && password === '123') {
-      setUser({ username: 'abc', role: 'user', name: 'Regular User', mobile: '', address: '' })
+      const userObj = { username: 'abc', role: 'user', name: 'Regular User', mobile: '', address: '' }
+      setUser(userObj)
+      localStorage.setItem("user", JSON.stringify(userObj))
       showNotification("User login successful!", "success")
       return true
     }
@@ -767,6 +775,7 @@ function App() {
   
   const logout = () => {
     setUser(null)
+    localStorage.removeItem("user")
     showNotification("Logged out successfully!", "info")
   }
   
@@ -896,7 +905,7 @@ function App() {
           
           <Routes>
             <Route path="/:id" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage setUser={setUser} />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/contact" element={<ContactPage />} />

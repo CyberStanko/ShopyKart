@@ -5,7 +5,7 @@ import { Eye, EyeOff, Lock, ArrowLeft, Sparkles, User } from "lucide-react"
 import { AppContext } from "../App"
 import axios from'axios';
 
-const LoginPage = () => {
+const LoginPage = ({ setUser }) => {
   const { login } = useContext(AppContext)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -36,6 +36,9 @@ const LoginPage = () => {
     setIsLoading(false)
 
     if (res.data && res.data.userId) {
+      const userObj = { id: res.data.userId, role: res.data.role }
+      setUser(userObj)
+      localStorage.setItem("user", JSON.stringify(userObj)) // <-- Add this line
       // Redirect to user-specific page
       navigate(`/${res.data.userId}`)
     } else {

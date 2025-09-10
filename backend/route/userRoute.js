@@ -44,12 +44,8 @@ router.post("/login", async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
-    if(!user.role){
-        res.status(200).json({ message: "Login successful", userId: user._id, role: user.role });
-    }
-    else{
-        res.status(200).json({ message: "Login successful", userId: user._id});
-    }
+    res.status(200).json({ message: "Login successful", userId: user._id, role: user.role });
+
 
     // Success
     // res.status(200).json({ message: "Login successful", userId: user._id});
