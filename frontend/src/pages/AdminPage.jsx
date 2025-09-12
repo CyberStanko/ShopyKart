@@ -1,4 +1,4 @@
-import { useState, useContext } from "react"
+import { useState, useContext, use, useEffect } from "react"
 import { motion } from "framer-motion"
 import axios from "axios"
 import {
@@ -19,7 +19,7 @@ import {
   Save,
 } from "lucide-react"
 import { AppContext } from "../App"
-import { Link } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 
 // Mock data
 const mockOrders = [
@@ -61,84 +61,6 @@ const mockOrders = [
   },
 ]
 
-const mockUsers = [
-  {
-    id: "user1",
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Main St, New York, NY 10001",
-    joinDate: "2023-12-01",
-    totalOrders: 5,
-    totalSpent: 1299.95,
-    status: "active",
-  },
-  {
-    id: "user2",
-    name: "Jane Smith",
-    email: "jane@example.com",
-    phone: "+1 (555) 234-5678",
-    address: "456 Oak Ave, Los Angeles, CA 90210",
-    joinDate: "2023-11-15",
-    totalOrders: 3,
-    totalSpent: 599.97,
-    status: "active",
-  },
-  {
-    id: "user3",
-    name: "Mike Johnson",
-    email: "mike@example.com",
-    phone: "+1 (555) 345-6789",
-    address: "789 Pine St, Chicago, IL 60601",
-    joinDate: "2023-10-20",
-    totalOrders: 2,
-    totalSpent: 849.98,
-    status: "inactive",
-  },
-]
-
-const mockProducts = [
-  {
-    id: 1,
-    name: "Premium Wireless Headphones",
-    category: "Electronics",
-    price: 299.99,
-    stock: 15,
-    sold: 45,
-    image: "https://via.placeholder.com/100x100?text=Headphones",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "Smart Fitness Watch",
-    category: "Wearables",
-    price: 199.99,
-    stock: 8,
-    sold: 32,
-    image: "https://via.placeholder.com/100x100?text=Smart+Watch",
-    status: "active",
-  },
-  {
-    id: 3,
-    name: "Ergonomic Office Chair",
-    category: "Furniture",
-    price: 449.99,
-    stock: 3,
-    sold: 18,
-    image: "https://via.placeholder.com/100x100?text=Office+Chair",
-    status: "low_stock",
-  },
-  {
-    id: 4,
-    name: "4K Ultra HD Monitor",
-    category: "Electronics",
-    price: 329.99,
-    stock: 12,
-    sold: 28,
-    image: "https://via.placeholder.com/100x100?text=4K+Monitor",
-    status: "active",
-  },
-]
 
 const AdminPage = () => {
   const { user, showNotification } = useContext(AppContext)
@@ -149,8 +71,42 @@ const AdminPage = () => {
   const [showAddProduct, setShowAddProduct] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [orders] = useState(mockOrders)
-  const [users] = useState(mockUsers)
-  const [products, setProducts] = useState(mockProducts)
+
+  const [users, setUsers] = useState([])
+
+  const [products, setProducts] = useState([])
+   useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/products")
+        setProducts(res.data.products)
+        console.log("Products:", res.data.products)
+      } catch (err) {
+        console.error(err)
+        showNotification("Error while fetching products", "error")
+      }
+    }
+
+    const fetchUsers = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/users")
+      console.log("Users API Response:", res.data)
+
+      // if backend returns array directly
+      if (Array.isArray(res.data)) {
+        setUsers(res.data)
+      } else {
+        setUsers(res.data.users || [])
+      }
+    } catch (err) {
+      console.error(err)
+      showNotification("Error while fetching users", "error")
+    }
+  }
+
+    fetchProducts()
+    fetchUsers()
+  }, [])
 
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -196,35 +152,55 @@ const AdminPage = () => {
     }
   }
 
-
 const handleAddProduct = async () => {
-  if (newProduct.name && newProduct.category && newProduct.price && newProduct.stock && newProduct.image) {
+  if (
+    newProduct.name?.trim() &&
+    newProduct.category?.trim() &&
+    newProduct.price !== "" &&
+    newProduct.stock !== "" &&
+    newProduct.image?.trim()
+  ) {
     try {
       const product = {
         ...newProduct,
-        price: Number.parseFloat(newProduct.price),
-        stock: Number.parseInt(newProduct.stock),
+        price: Number.parseFloat(newProduct.price) || 0,
+        stock: Number.parseInt(newProduct.stock) || 0,
         sold: 0,
         status: "active",
-      }
+      };
 
-      // ✅ API call to backend
-      const res = await axios.post("http://localhost:5000/products", product)
+      // API call
+      const res = await axios.post("http://localhost:5000/products/add", product);
 
-      // Update frontend state with DB response
-      setProducts([...products, res.data.product])
+      // Update frontend state
+      setProducts([...products, res.data.product]);
 
-      setNewProduct({ name: "", category: "", price: "", stock: "", image: "" , brand: "",  description: "", keyFeatures: "", specifications: "" })
-      setShowAddProduct(false)
-      showNotification("Product added successfully!", "success")
+      console.log("Adding product:", product);
+
+      // Reset form
+      setNewProduct({
+        name: "",
+        category: "",
+        price: "",
+        stock: "",
+        image: "",
+        brand: "",
+        description: "",
+        keyFeatures: "",
+        specifications: "",
+      });
+
+      setShowAddProduct(false);
+      showNotification("Product added successfully!", "success");
     } catch (err) {
-      console.error(err)
-      showNotification("Error while adding product", "error")
+      console.error(err);
+      showNotification("Error while adding product", "error");
     }
   } else {
-    showNotification("Please fill all fields including image", "error")
+    showNotification("Please fill all fields including image", "error");
   }
-}
+};
+
 
   const handleFileChange = (e) => {
   const file = e.target.files[0]
@@ -237,16 +213,56 @@ const handleAddProduct = async () => {
   }
 }
 
-  const handleEditProduct = (product) => {
-    setProducts(products.map((p) => (p.id === product.id ? product : p)))
-    setEditingProduct(null)
-    showNotification("Product updated successfully!", "success")
-  }
+  // Edit product
+const handleEditProduct = async (product) => {
+  try {
+    const productId = product.id || product._id; // ✅ safe check
 
-  const handleDeleteProduct = (productId) => {
-    setProducts(products.filter((p) => p.id !== productId))
-    showNotification("Product deleted successfully!", "success")
+    if (!productId) {
+      showNotification("Invalid product ID", "error");
+      return;
+    }
+
+    const res = await axios.put(
+      `http://localhost:5000/products/update/${productId}`,
+      product
+    );
+
+    // ✅ Update frontend state with DB response
+    setProducts(products.map((p) =>
+      (p.id || p._id) === productId ? res.data.product : p
+    ));
+
+    setEditingProduct(null);
+    showNotification("Product updated successfully!", "success");
+  } catch (err) {
+    console.error(err);
+    showNotification("Error updating product", "error");
   }
+};
+
+
+// Delete product
+const handleDeleteProduct = async (productId) => {
+  try {
+    if (!productId) {
+      showNotification("Invalid product ID", "error");
+      return;
+    }
+
+    await axios.delete(`http://localhost:5000/products/delete/${productId}`);
+
+    // frontend la state update
+    setProducts(products.filter((p) => (p.id || p._id) !== productId));
+
+    showNotification("Product deleted successfully!", "success");
+  } catch (err) {
+    console.error(err);
+    showNotification("Error deleting product", "error");
+  }
+};
+
+
 
   const filteredOrders = orders.filter(
     (order) =>
@@ -254,17 +270,25 @@ const handleAddProduct = async () => {
       order.userName.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  // const [users, setUsers] = useState([])
 
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+const filteredUsers = (users || []).filter(
+  (user) =>
+    user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+)
+
+
+  const filteredProducts = (products || []).filter(
+  (product) =>
+    (product?.name || "")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()) ||
+    (product?.category || "")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+)
+
 
   if (user?.role !== "admin") {
     return (
@@ -330,7 +354,7 @@ const handleAddCategory = () => {
           className="flex items-center justify-between mb-8"
         >
           <div className="flex items-center space-x-4">
-            <Link to="/">
+            <Link to={`/${useParams().storeId || ""}`}>
               <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -370,7 +394,7 @@ const handleAddCategory = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Products</p>
-                <p className="text-2xl font-bold text-gray-800">{products.length}</p>
+                <p className="text-2xl font-bold text-gray-800">{products?.length ?? 0}</p>
               </div>
               <Package className="w-8 h-8 text-purple-500" />
             </div>
@@ -543,97 +567,131 @@ const handleAddCategory = () => {
             )}
 
             {activeTab === "products" && (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-medium text-gray-700">Product</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-700">Category</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-700">Price</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-700">Stock</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-700">Sold</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredProducts.map((product) => (
-                      <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center space-x-3">
-                            <img
-                              src={product.image || "/placeholder.svg"}
-                              alt={product.name}
-                              className="w-12 h-12 object-cover rounded-lg"
-                            />
-                            <div className="font-medium">{product.name}</div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-gray-600">{product.category}</td>
-                        <td className="py-3 px-4 font-medium">${product.price}</td>
-                        <td className="py-3 px-4">
-                          {editingProduct?.id === product.id ? (
-                            <input
-                              type="number"
-                              value={editingProduct.stock}
-                              onChange={(e) =>
-                                setEditingProduct({ ...editingProduct, stock: Number.parseInt(e.target.value) })
-                              }
-                              className="w-20 px-2 py-1 border border-gray-300 rounded"
-                            />
-                          ) : (
-                            product.stock
-                          )}
-                        </td>
-                        <td className="py-3 px-4">{product.sold}</td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}
-                          >
-                            {product.status.replace("_", " ")}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center space-x-2">
-                            {editingProduct?.id === product.id ? (
-                              <>
-                                <button
-                                  onClick={() => handleEditProduct(editingProduct)}
-                                  className="text-green-600 hover:text-green-800 transition-colors"
-                                >
-                                  <Save className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => setEditingProduct(null)}
-                                  className="text-gray-600 hover:text-gray-800 transition-colors"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  onClick={() => setEditingProduct(product)}
-                                  className="text-primary hover:text-primary/80 transition-colors"
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteProduct(product.id)}
-                                  className="text-red-600 hover:text-red-800 transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+  <div className="overflow-x-auto">
+    <table className="w-full min-w-[700px] text-sm">
+      <thead className="bg-gray-100">
+        <tr>
+          <th className="text-left py-3 px-4 font-semibold text-gray-700">Product</th>
+          <th className="text-left py-3 px-4 font-semibold text-gray-700">Category</th>
+          <th className="text-left py-3 px-4 font-semibold text-gray-700">Price</th>
+          <th className="text-left py-3 px-4 font-semibold text-gray-700">Stock</th>
+          <th className="text-left py-3 px-4 font-semibold text-gray-700">Sold</th>
+          <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+          <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {filteredProducts.map((product) => {
+          const productId = product.id || product._id
+          const isEditing = editingProduct?.id === productId || editingProduct?._id === productId
+
+          return (
+            <tr
+              key={productId}
+              className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+            >
+              {/* Product + Image */}
+              <td className="py-3 px-4">
+                <div className="flex items-center space-x-3">
+                  <img
+                    src={product.image || "/placeholder.svg"}
+                    alt={product.name || "No name"}
+                    className="w-12 h-12 object-cover rounded-md border"
+                  />
+                  <span className="font-medium text-gray-800">
+                    {product.name || "Unnamed"}
+                  </span>
+                </div>
+              </td>
+
+              {/* Category */}
+              <td className="py-3 px-4 text-gray-600">
+                {product.category || "Uncategorized"}
+              </td>
+
+              {/* Price */}
+              <td className="py-3 px-4 font-medium text-gray-900">
+                ₹{Number(product.price || 0).toLocaleString("en-IN")}
+              </td>
+
+              {/* Stock (Editable) */}
+              <td className="py-3 px-4">
+                {isEditing ? (
+                  <input
+                    type="number"
+                    value={editingProduct?.stock ?? 0}
+                    onChange={(e) =>
+                      setEditingProduct({
+                        ...editingProduct,
+                        stock: Number.parseInt(e.target.value) || 0,
+                      })
+                    }
+                    className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
+                  />
+                ) : (
+                  <span className="text-gray-700">{product.stock ?? 0}</span>
+                )}
+              </td>
+
+              {/* Sold */}
+              <td className="py-3 px-4 text-gray-600">{product.sold ?? 0}</td>
+
+              {/* Status */}
+              <td className="py-3 px-4">
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                    product.status || "inactive"
+                  )}`}
+                >
+                  {(product.status || "inactive").replace("_", " ")}
+                </span>
+              </td>
+
+              {/* Actions */}
+              <td className="py-3 px-4">
+                <div className="flex items-center space-x-3">
+                  {isEditing ? (
+                    <>
+                      <button
+                        onClick={() => handleEditProduct(editingProduct)}
+                        className="text-green-600 hover:text-green-800"
+                      >
+                        <Save className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => setEditingProduct(null)}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setEditingProduct(product)}
+                        className="text-primary hover:text-primary/80"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProduct(productId)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </td>
+            </tr>
+          )
+        })}
+
+      </tbody>
+    </table>
+  </div>
+)}
+
           </div>
         </div>
 

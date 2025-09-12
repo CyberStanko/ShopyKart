@@ -1,5 +1,5 @@
 import { useState, useContext } from "react"
-import { Link, useNavigate, useLocation } from "react-router-dom"
+import { Link, useNavigate, useLocation, useParams } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Search,
@@ -28,7 +28,7 @@ const Navbar = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-
+  const { storeId } = useParams()
   const handleSearch = (e) => {
     e.preventDefault()
     if (searchQuery.trim()) {
@@ -44,12 +44,13 @@ const Navbar = () => {
   }
 
   const navLinks = [
-    { name: "Home", path: "/", icon: Home },
-    { name: "Categories", path: "/categories", icon: Grid3X3 },
-    { name: "Contact", path: "/contact", icon: Phone },
-    { name: "User", path: "/user", icon: user},
-    { name: "Admin", path: "/admin", icon: User2Icon}
-  ]
+  { name: "Home", path: "/", icon: Home },
+  { name: "Categories", path: "/categories", icon: Grid3X3 },
+  { name: "Contact", path: "/contact", icon: Phone },
+  { name: "User", path: "/user", icon: User },   // ✅ capital U venum (icon import name match aganum)
+  { name: "Admin", path: "/admin/12345", icon: User2Icon }
+];
+
 
   return (
     <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-primary/20 shadow-lg">
@@ -227,7 +228,7 @@ const Navbar = () => {
                       className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2"
                     >
                       <Link
-                        to={user.role === "admin" ? "/admin" : "/user"}
+                        to={user.role === "admin" ? `/admin/${storeId}` : "/user"}
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
                       >

@@ -51,6 +51,7 @@ const productSchema = mongoose.Schema({
     reviews: {
     type: String,
     // require: true,
+    default: "",
   },
 });
 
