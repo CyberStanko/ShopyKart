@@ -27,8 +27,9 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const navigate = useNavigate()
+
   const location = useLocation()
-  const { storeId } = useParams()
+
   const handleSearch = (e) => {
     e.preventDefault()
     if (searchQuery.trim()) {
@@ -44,11 +45,11 @@ const Navbar = () => {
   }
 
   const navLinks = [
-  { name: "Home", path: "/", icon: Home },
+  { name: "Home", path: `/${localStorage.getItem("userid")}`, icon: Home },
   { name: "Categories", path: "/categories", icon: Grid3X3 },
   { name: "Contact", path: "/contact", icon: Phone },
   { name: "User", path: "/user", icon: User },   // ✅ capital U venum (icon import name match aganum)
-  { name: "Admin", path: "/admin/12345", icon: User2Icon }
+  { name: "Admin", path: "/admin", icon: User2Icon }
 ];
 
 

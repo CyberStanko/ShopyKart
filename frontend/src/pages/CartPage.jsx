@@ -82,7 +82,7 @@ const CartPage = () => {
             <ShoppingCart className="w-24 h-24 text-gray-400 mx-auto mb-6" />
             <h1 className="text-3xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
             <p className="text-gray-600 mb-8">Looks like you haven't added anything to your cart yet.</p>
-            <Link to="/">
+            <Link to={`/${localStorage.getItem("userid")}`}>
               <Button className="bg-blue-600 hover:bg-blue-700">
                 Continue Shopping
                 <ArrowRight className="ml-2 w-4 h-4" />

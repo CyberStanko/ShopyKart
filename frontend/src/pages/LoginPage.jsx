@@ -39,6 +39,8 @@ const LoginPage = ({ setUser }) => {
       const userObj = { id: res.data.userId, role: res.data.role }
       setUser(userObj)
       localStorage.setItem("user", JSON.stringify(userObj)) // <-- Add this line
+      localStorage.setItem("userid", res.data.userId);
+      // alert(localStorage.getItem("userid"));
       // Redirect to user-specific page
       navigate(`/${res.data.userId}`)
     } else {

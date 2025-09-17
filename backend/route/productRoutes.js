@@ -6,10 +6,10 @@ const router = express.Router()
 
 router.post("/products/add", async (req, res) => {
   try {
-    const { name, category, price, stock, image, description, keyFeatures, specifications } = req.body
+    const { name, category, price, stock, image, originalPrice, discount, description, keyFeatures, specifications } = req.body
     console.log(req.body);
     
-    const newProduct = new Product({ name, category, price, stock, image, description, keyFeatures, specifications })
+    const newProduct = new Product({ name, category, price, stock, image, originalPrice, discount, description, keyFeatures, specifications })
     await newProduct.save()
 
     res.json({ message: "Product added", product: newProduct })

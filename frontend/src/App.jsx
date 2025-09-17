@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react"
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
+import axios from "axios"
 import {
   Search,
   ShoppingCart,
@@ -39,6 +40,7 @@ import CheckoutPage from "./pages/CheckoutPage"
 import SignupPage from "./pages/SignUpPage"
 
 
+
 // Context for global state management
 export const AppContext = React.createContext()
 
@@ -59,60 +61,7 @@ function ShopyLogo({ className = "h-8", showText = true, textClassName = "text-x
 }
 
 // Sample products data
-const products = [
-  {
-    id: 1,
-    name: "Premium Wireless Headphones",
-    price: 299.99,
-    originalPrice: 399.99,
-    rating: 4.8,
-    reviews: 1247,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop",
-    category: "Electronics",
-    featured: true,
-    discount: 25,
-    inStock: 15,
-  },
-  {
-    id: 2,
-    name: "Smart Fitness Watch",
-    price: 199.99,
-    originalPrice: 249.99,
-    rating: 4.6,
-    reviews: 892,
-    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop",
-    category: "Wearables",
-    featured: true,
-    discount: 20,
-    inStock: 8,
-  },
-  {
-    id: 3,
-    name: "Ergonomic Office Chair",
-    price: 449.99,
-    originalPrice: 599.99,
-    rating: 4.9,
-    reviews: 634,
-    image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=300&fit=crop",
-    category: "Furniture",
-    featured: false,
-    discount: 25,
-    inStock: 3,
-  },
-  {
-    id: 4,
-    name: "4K Ultra HD Monitor",
-    price: 329.99,
-    originalPrice: 429.99,
-    rating: 4.7,
-    reviews: 1156,
-    image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=300&h=300&fit=crop",
-    category: "Electronics",
-    featured: true,
-    discount: 23,
-    inStock: 12,
-  },
-]
+let products = []
 
 // Simple Navbar Component with Search Bar
 function SimpleNavbar({ cartItems, user, onLoginClick, onLogout }) {
@@ -134,7 +83,7 @@ function SimpleNavbar({ cartItems, user, onLoginClick, onLogout }) {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
+            <div className="flex items-center cursor-pointer" onClick={() => navigate(`/${localStorage.getItem("userid")}`)}>
               <ShopyLogo className="h-12" textClassName="text-2xl font-bold" />
             </div>
           </div>
@@ -182,13 +131,13 @@ function SimpleNavbar({ cartItems, user, onLoginClick, onLogout }) {
           <div className="flex items-center space-x-6">
             {/* Navigation Links */}
             <div className="hidden lg:flex items-center space-x-4">
-              <button onClick={() => navigate('/')} className="text-gray-700 hover:text-blue-600 transition-colors">Home</button>
-              <button onClick={() => navigate('/categories')} className="text-gray-700 hover:text-blue-600 transition-colors">Category</button>
-              <button onClick={() => navigate('/contact')} className="text-gray-700 hover:text-blue-600 transition-colors">Contact</button>
+              <button onClick={() => navigate(`/${localStorage.getItem("userid")}`)} className="text-gray-700 hover:text-blue-600 transition-colors">Home</button>
+              <button onClick={() => navigate(`/categories/${localStorage.getItem("userid")}`)} className="text-gray-700 hover:text-blue-600 transition-colors">Category</button>
+              <button onClick={() => navigate(`/contact/${localStorage.getItem("userid")}`)} className="text-gray-700 hover:text-blue-600 transition-colors">Contact</button>
             </div>
 
             {/* Cart */}
-            <div className="relative cursor-pointer" onClick={() => navigate('/cart')}>
+            <div className="relative cursor-pointer" onClick={() => navigate(`/cart/${localStorage.getItem("userid")}`)}>
               <ShoppingCart className="h-6 w-6 text-gray-600 hover:text-blue-600 transition-colors" />
               {cartItems.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -201,7 +150,7 @@ function SimpleNavbar({ cartItems, user, onLoginClick, onLogout }) {
             {user ? (
               <div className="flex items-center space-x-3">
                 <button
-                  onClick={() => navigate(user.role === 'admin' ? '/admin' : '/user')}
+                  onClick={() => navigate(user.role === 'admin' ? `/admin/${localStorage.getItem("userid")}` : `/user/${localStorage.getItem("userid")}`)}
                   className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
                 >
                   <User className="h-6 w-6" />
@@ -377,17 +326,54 @@ function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [currentSlide, setCurrentSlide] = useState(0)
   const navigate = useNavigate()
+  const userid = useParams();
+  const [productsData, setProductsData] = useState([])
+  localStorage.setItem("userid",userid.id);
+  // alert(localStorage.getItem("userid"));
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory
-    return matchesSearch && matchesCategory
-  })
+  let filteredProducts = [];
 
-  const categories = ["All", ...new Set(products.map(p => p.category))]
+if (products && products.length > 0) {
+  filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+}
+
+
+  let categories = ["All"];
+
+if (products && products.length > 0) {
+  categories = ["All", ...new Set(products.map(p => p.category))];
+}
+
 
   // High discount products for slides (discount >= 20%)
-  const highDiscountProducts = products.filter(product => product.discount >= 20)
+let highDiscountProducts = [];
+
+if (products && products.length > 0) {
+  highDiscountProducts = products.filter(product => product.discount >= 20);
+}
+
+
+  useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/products");
+
+      setProductsData(res.data.products);      // state update
+      products = res.data.products;            // global variable update directly
+
+      console.log("Products:", res.data.products);
+    } catch (err) {
+      console.error(err);
+      showNotification("Error while fetching products", "error");
+    }
+  };
+
+  fetchProducts();
+}, []);
 
   // Auto-slide functionality
   useEffect(() => {
@@ -400,7 +386,7 @@ function HomePage() {
   }, [highDiscountProducts.length])
 
   const handleProductClick = (productId) => {
-    navigate(`/product/${productId}`)
+    navigate(`/product/${localStorage.getItem("userid")}/${productId}`)
   }
   
   return (
@@ -625,7 +611,7 @@ function HomePage() {
                   textShadow: "0 0 20px rgba(56, 121, 189, 0.5)"
                 }}
               >
-                <AnimatedCounter end={products.length} suffix="+" />
+              <AnimatedCounter end={products?.length || 0} suffix="+" />
               </motion.div>
               <div className="text-lg font-medium" style={{ color: '#3879bd', opacity: 0.8 }}>Products</div>
             </motion.div>
@@ -684,28 +670,28 @@ function HomePage() {
 
 // Sample orders data
 const sampleOrders = [
-  {
-    id: 1,
-    userId: 'abc',
-    userName: 'Regular User',
-    products: [{ ...products[0], quantity: 2 }],
-    total: 599.98,
-    status: 'delivered',
-    paymentMethod: 'UPI',
-    orderDate: '2024-01-15',
-    deliveryDate: '2024-01-17'
-  },
-  {
-    id: 2,
-    userId: 'abc',
-    userName: 'Regular User',
-    products: [{ ...products[1], quantity: 1 }],
-    total: 199.99,
-    status: 'shipped',
-    paymentMethod: 'Card',
-    orderDate: '2024-01-20',
-    deliveryDate: '2024-01-22'
-  }
+  // {
+  //   id: 1,
+  //   userId: 'abc',
+  //   userName: 'Regular User',
+  //   products: [{ ...products[0], quantity: 2 }],
+  //   total: 599.98,
+  //   status: 'delivered',
+  //   paymentMethod: 'UPI',
+  //   orderDate: '2024-01-15',
+  //   deliveryDate: '2024-01-17'
+  // },
+  // {
+  //   id: 2,
+  //   userId: 'abc',
+  //   userName: 'Regular User',
+  //   products: [{ ...products[1], quantity: 1 }],
+  //   total: 199.99,
+  //   status: 'shipped',
+  //   paymentMethod: 'Card',
+  //   orderDate: '2024-01-20',
+  //   deliveryDate: '2024-01-22'
+  // }
 ]
 
 // Sample users data
@@ -744,6 +730,7 @@ function App() {
   const [orders, setOrders] = useState(sampleOrders)
   const [users, setUsers] = useState(sampleUsers)
   const [isLoading, setIsLoading] = useState(true)
+  // const navigate = useNavigate() 
   
 
   // Simulate loading
@@ -775,8 +762,10 @@ function App() {
   
   const logout = () => {
     setUser(null)
+    localStorage.removeItem("userid")
     localStorage.removeItem("user")
     showNotification("Logged out successfully!", "info")
+    navigate('/login');
   }
   
   const addToCart = (product) => {
@@ -907,14 +896,14 @@ function App() {
             <Route path="/:id" element={<HomePage />} />
             <Route path="/login" element={<LoginPage setUser={setUser} />} />
             <Route path="/signup" element={<SignupPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/product/:id" element={<ProductDetailsPage />} />
-            <Route path="/user" element={user ? <UserPage /> : <Navigate to="/login" />} />
-            <Route path="/payment" element={user ? <PaymentPage /> : <Navigate to="/login" />} />
-            <Route path="/admin" element={user?.role === "admin" ? <AdminPage /> : <Navigate to="/login" />} />
-            <Route path="/checkout" element={user ? <CheckoutPage /> : <Navigate to="/login" />} />
+            <Route path="/cart/:id" element={<CartPage />} />
+            <Route path="/contact/:id" element={<ContactPage />} />
+            <Route path="/categories/:id" element={<CategoriesPage />} />
+            <Route path="/product/:id/:productid" element={<ProductDetailsPage />} />
+            <Route path="/user/:id" element={user ? <UserPage /> : <Navigate to="/login" />} />
+            <Route path="/payment/:id" element={user ? <PaymentPage /> : <Navigate to="/login" />} />
+            <Route path="/admin/:id" element={user?.role === "admin" ? <AdminPage /> : <Navigate to="/login" />} />
+            <Route path="/checkout/:id" element={user ? <CheckoutPage /> : <Navigate to="/login" />} />
           </Routes>
 
           {/* Simple Footer */}
@@ -950,7 +939,7 @@ function App() {
                 <div>
                   <h3 className="font-semibold mb-4">Stats</h3>
                   <ul className="space-y-2 text-gray-400">
-                    <li>🛍️ {products.length}+ Products</li>
+                    <li>🛍️ {products?.length||0}+ Products</li>
                     <li>⭐ 4.8 Average Rating</li>
                     <li>🚚 Free Shipping</li>
                     <li>💯 100% Satisfaction</li>

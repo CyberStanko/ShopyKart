@@ -112,11 +112,13 @@ const AdminPage = () => {
     name: "",
     category: "",
     price: "",
-    stock: "",
+    originalPrice: "",
+    discount: "",
+    inStock: "",
     image: "",
     brand: "",
     description: "",
-    keyFeatures: "",
+    featured: "",
     specifications: ""
   })
 
@@ -157,14 +159,14 @@ const handleAddProduct = async () => {
     newProduct.name?.trim() &&
     newProduct.category?.trim() &&
     newProduct.price !== "" &&
-    newProduct.stock !== "" &&
+    newProduct.inStock !== "" &&
     newProduct.image?.trim()
   ) {
     try {
       const product = {
         ...newProduct,
         price: Number.parseFloat(newProduct.price) || 0,
-        stock: Number.parseInt(newProduct.stock) || 0,
+        inStock: Number.parseInt(newProduct.inStock) || 0,
         sold: 0,
         status: "active",
       };
@@ -182,11 +184,13 @@ const handleAddProduct = async () => {
         name: "",
         category: "",
         price: "",
-        stock: "",
+        originalPrice: "",
+        discount: "",
+        inStock: "",
         image: "",
         brand: "",
         description: "",
-        keyFeatures: "",
+        featured: "",
         specifications: "",
       });
 
@@ -354,7 +358,7 @@ const handleAddCategory = () => {
           className="flex items-center justify-between mb-8"
         >
           <div className="flex items-center space-x-4">
-            <Link to={`/${useParams().storeId || ""}`}>
+            <Link to={`/${localStorage.getItem("userid") || ""}`}>
               <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -619,17 +623,17 @@ const handleAddCategory = () => {
                 {isEditing ? (
                   <input
                     type="number"
-                    value={editingProduct?.stock ?? 0}
+                    value={editingProduct?.inStock ?? 0}
                     onChange={(e) =>
                       setEditingProduct({
                         ...editingProduct,
-                        stock: Number.parseInt(e.target.value) || 0,
+                        inStock: Number.parseInt(e.target.value) || 0,
                       })
                     }
                     className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
                   />
                 ) : (
-                  <span className="text-gray-700">{product.stock ?? 0}</span>
+                  <span className="text-gray-700">{product.inStock ?? 0}</span>
                 )}
               </td>
 
@@ -949,10 +953,34 @@ const handleAddCategory = () => {
                 </div>
 
                 {/* Price & Stock */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-1">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Price
+                      Original Price
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newProduct.originalPrice}
+                      onChange={(e) => setNewProduct({ ...newProduct, originalPrice: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Discount
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={newProduct.discount}
+                      onChange={(e) => setNewProduct({ ...newProduct, discount: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Discounted Price
                     </label>
                     <input
                       type="number"
@@ -968,8 +996,8 @@ const handleAddCategory = () => {
                     </label>
                     <input
                       type="number"
-                      value={newProduct.stock}
-                      onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+                      value={newProduct.inStock}
+                      onChange={(e) => setNewProduct({ ...newProduct, inStock: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/40"
                     />
                   </div>
@@ -1011,9 +1039,9 @@ const handleAddCategory = () => {
                   </label>
                   <textarea
                     rows="2"
-                    value={newProduct.keyFeatures}
+                    value={newProduct.featured}
                     onChange={(e) =>
-                      setNewProduct({ ...newProduct, keyFeatures: e.target.value })
+                      setNewProduct({ ...newProduct, featured: e.target.value })
                     }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/40"
                   />

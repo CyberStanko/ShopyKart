@@ -13,6 +13,16 @@ const productSchema = mongoose.Schema({
   price: {
     type: Number,
     require: true,
+    default: 0,
+  },
+  originalPrice: {
+    type: Number,
+    require: true,
+  },
+  discount: {
+    type: Number,
+    require: true,
+    default: 0,
   },
     brand: {
     type: String,
@@ -26,7 +36,7 @@ const productSchema = mongoose.Schema({
     type: String,
     require: true,
   },
-    stock: {
+    inStock: {
     type: Number,
     require: true,
   },
@@ -35,7 +45,7 @@ const productSchema = mongoose.Schema({
     // require: true,
     default: 0,
   },
-  keyFeatures: {
+  featured: {
     type: String,
     require: true,
   },
@@ -43,7 +53,7 @@ const productSchema = mongoose.Schema({
     type: String,
     require: true,
   },
-    ratings: {
+    rating: {
     type: Number,
     // require: true,
     default: 0,

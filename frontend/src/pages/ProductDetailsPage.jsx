@@ -24,7 +24,7 @@ import { AppContext } from "../App"
 // Mock product data
 const productData = {
   1: {
-    id: 1,
+    productid: 1,
     name: "Premium Wireless Headphones",
     price: 299.99,
     originalPrice: 399.99,
@@ -60,7 +60,7 @@ const productData = {
     },
   },
   2: {
-    id: 2,
+    productid: 2,
     name: "Smart Fitness Watch",
     price: 199.99,
     originalPrice: 249.99,
@@ -98,7 +98,7 @@ const productData = {
 
 const reviews = [
   {
-    id: 1,
+    productid: 1,
     user: "Sarah M.",
     rating: 5,
     date: "2024-01-15",
@@ -109,7 +109,7 @@ const reviews = [
     verified: true,
   },
   {
-    id: 2,
+    productid: 2,
     user: "Mike R.",
     rating: 4,
     date: "2024-01-10",
@@ -120,7 +120,7 @@ const reviews = [
     verified: true,
   },
   {
-    id: 3,
+    productid: 3,
     user: "Emily K.",
     rating: 5,
     date: "2024-01-08",
@@ -132,13 +132,13 @@ const reviews = [
 ]
 
 const ProductDetailsPage = () => {
-  const { id } = useParams()
+  const { productid } = useParams()
   const { addToCart, toggleWishlist, wishlistItems, showNotification } = useContext(AppContext)
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState("description")
 
-  const product = productData[id]
+  const product = productData[productid]
 
   if (!product) {
     return (
@@ -245,7 +245,7 @@ const ProductDetailsPage = () => {
                   >
                     <Heart
                       className={`w-4 h-4 ${
-                        wishlistItems.some((item) => item.id === product.id)
+                        wishlistItems.some((item) => item.productid === product.productid)
                           ? "text-red-500 fill-current"
                           : "text-gray-600"
                       }`}
@@ -512,7 +512,7 @@ const ProductDetailsPage = () => {
                   {/* Individual Reviews */}
                   <div className="space-y-6">
                     {reviews.map((review) => (
-                      <div key={review.id} className="border-b border-gray-200 pb-6">
+                      <div key={review.productid} className="border-b border-gray-200 pb-6">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
