@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { AppContext } from "../App"
 import { Link, useNavigate } from "react-router-dom"
+import axios from "axios"
 
 const CartPage = () => {
   const { cartItems, removeFromCart, updateCartQuantity, user, showNotification } = useContext(AppContext)
@@ -19,18 +20,55 @@ const CartPage = () => {
   const tax = selectedSubtotal * 0.08
   const total = selectedSubtotal + shipping + tax
 
-  const handleQuantityChange = (itemId, newQuantity) => {
+  const handleQuantityChange = async (item, newQuantity) => {
+  const userId = localStorage.getItem("userid");
+
+  try {
     if (newQuantity <= 0) {
-      removeFromCart(itemId)
+      // remove item completely
+      await axios.delete(`http://localhost:5000/cart/delete/${userId}/${item.id}`);
+      removeFromCart(item.id);
+
       setSelectedItems(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(itemId)
-        return newSet
-      })
+        const newSet = new Set(prev);
+        newSet.delete(item.id);
+        return newSet;
+      });
     } else {
-      updateCartQuantity(itemId, newQuantity)
+      // update quantity
+      await axios.put(`http://localhost:5000/cart/update/${userId}/${item.id}`, {
+        quantity: newQuantity
+      });
+
+
+
+      updateCartQuantity(item.id, newQuantity);
     }
+  } catch (err) {
+    console.error("Error updating quantity:", err);
   }
+};
+
+
+const handleDeleteItem = async (item) => {
+  const userId = localStorage.getItem("userid");
+  try {
+    await axios.delete(`http://localhost:5000/cart/delete/${userId}/${item.id}`);
+
+    removeFromCart(item.id);
+
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(item.id);
+      return newSet;
+    });
+  } catch (err) {
+    console.error("Error deleting item:", err);
+  }
+};
+
+
+
 
   const handleSelectItem = (itemId) => {
     setSelectedItems(prev => {
@@ -127,9 +165,9 @@ const CartPage = () => {
               </CardHeader>
               <CardContent>
                 <AnimatePresence>
-                  {cartItems.map((item) => (
+                  {cartItems.map((item, idx) => (
                     <motion.div
-                      key={item.id}
+                      key={item.id || idx} // <-- Fix: fallback to index if id is missing
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
@@ -158,7 +196,7 @@ const CartPage = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                          onClick={() => handleQuantityChange(item, item.quantity - 1)}
                         >
                           <Minus className="w-4 h-4" />
                         </Button>
@@ -166,8 +204,7 @@ const CartPage = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                          disabled={item.quantity >= item.inStock}
+                          onClick={() => handleQuantityChange(item, item.quantity + 1)}
                         >
                           <Plus className="w-4 h-4" />
                         </Button>
@@ -179,13 +216,14 @@ const CartPage = () => {
                       </div>
 
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeFromCart(item.id)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+  variant="outline"
+  size="sm"
+  onClick={() => handleDeleteItem(item)}
+  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+>
+  <Trash2 className="w-4 h-4" />
+</Button>
+
                     </motion.div>
                   ))}
                 </AnimatePresence>

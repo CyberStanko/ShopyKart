@@ -361,7 +361,7 @@ if (products && products.length > 0) {
   const fetchProducts = async () => {
     try {
       const res = await axios.get("http://localhost:5000/products");
-
+      
       setProductsData(res.data.products);      // state update
       products = res.data.products;            // global variable update directly
 
@@ -735,9 +735,22 @@ function App() {
 
   // Simulate loading
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000)
-    return () => clearTimeout(timer)
-  }, [])
+  const timer = setTimeout(() => setIsLoading(false), 1000)
+
+  const fetchCart = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/cart/${localStorage.getItem("userid")}`);
+      setCartItems(res.data.cart.products || []);
+      console.log("Cart items:", res.data.cart.products);
+    } catch (err) {
+      console.error("Error fetching cart:", err);
+    } 
+  };
+
+  fetchCart();
+  return () => clearTimeout(timer)
+}, [])
+
   
   const login = (username, password) => {
     // Check for admin credentials
@@ -768,19 +781,32 @@ function App() {
     navigate('/login');
   }
   
-  const addToCart = (product) => {
-    const existingItem = cartItems.find(item => item.id === product.id)
-    if (existingItem) {
-      setCartItems(cartItems.map(item => 
-        item.id === product.id 
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      ))
-    } else {
-      setCartItems([...cartItems, { ...product, quantity: 1 }])
-    }
-    showNotification(`${product.name} added to cart!`, "success")
+  const addToCart = async (product) => {
+  try {
+    await axios.post("http://localhost:5000/cart/add", {
+      userId: localStorage.getItem("userid"),
+      product: {
+        id: product._id,
+        name: product.name,
+        price: product.price,
+        image: product.image
+      },
+      quantity: 1
+    })
+    .then(response => {
+      setCartItems(response.data.cart.products); // update cart with products array
+    })
+    .catch(error => {
+      console.error('Error adding to cart:', error);
+      showNotification("Error adding to cart", "error");
+    });
+
+    showNotification(`${product.name} added to cart!`, "success");
+  } catch (err) {
+    console.error("Add to cart failed:", err);
   }
+};
+
   
   const removeFromCart = (productId) => {
     setCartItems(cartItems.filter(item => item.id !== productId))

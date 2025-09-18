@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const user = require('./route/userRoute');
 const product = require('./route/productRoutes');
+const Order = require('./route/orderRoute');
 const cors = require('cors');
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(cors());
 app.use(product);
 app.use(user);
+app.use(Order); 
 
 app.listen(5000,()=>{
     console.log("server on => http://localhost:5000/ ");
