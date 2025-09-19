@@ -105,7 +105,7 @@ const handleDeleteItem = async (item) => {
     // Store selected items for checkout
     const selectedCartItems = cartItems.filter(item => selectedItems.has(item.id))
     localStorage.setItem('checkoutItems', JSON.stringify(selectedCartItems))
-    navigate("/payment")
+    navigate(`/payment/${localStorage.getItem("userid")}`)
   }
 
   if (cartItems.length === 0) {

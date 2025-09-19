@@ -6,13 +6,27 @@ const router = express.Router()
 
 router.post("/products/add", async (req, res) => {
   try {
-    const { name, category, price, stock, image, originalPrice, discount, description, keyFeatures, specifications } = req.body
+    const { name, category, price, stock, image,brand, originalPrice, discount, description, keyFeatures, specifications } = req.body
     console.log(req.body);
     
-    const newProduct = new Product({ name, category, price, stock, image, originalPrice, discount, description, keyFeatures, specifications })
+    const newProduct = new Product({ name, category, price, stock,brand, image, originalPrice, discount, description, keyFeatures, specifications })
     await newProduct.save()
 
     res.json({ message: "Product added", product: newProduct })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.get("/products/:userid/:id" , async (req, res) => {
+  try {
+    const { id } = req.params
+    const product = await Product.findById(id)
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" })
+    }   
+    console.log(product);
+    res.json({ product })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

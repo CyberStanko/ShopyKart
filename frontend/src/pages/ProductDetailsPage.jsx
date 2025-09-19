@@ -1,4 +1,4 @@
-import { useState, useContext } from "react"
+import { useState, useContext, useEffect } from "react"
 import { useParams, Link, Navigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import CartPage from "./CartPage"
@@ -20,6 +20,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { AppContext } from "../App"
+import axios from "axios"
 
 // Mock product data
 const productData = {
@@ -138,7 +139,20 @@ const ProductDetailsPage = () => {
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState("description")
 
-  const product = productData[productid]
+  const [product,setProduct] = useState()
+  
+    useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/products/${localStorage.getItem("userid")}/${productid}`)
+        setProduct(res.data.product)
+        console.log(product);
+      } catch (err) {
+        console.error("Error fetching product:", err)
+      }
+    }
+    fetchProduct()
+  }, [productid])
 
   if (!product) {
     return (
@@ -219,7 +233,7 @@ const ProductDetailsPage = () => {
               {/* Main Image */}
               <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
                 <img
-                  src={product.images[selectedImage] || "/placeholder.svg"}
+                  src={product.image[selectedImage] || "/placeholder.svg"}
                   alt={product.name}
                   className="w-full h-96 object-cover"
                 />
@@ -255,7 +269,7 @@ const ProductDetailsPage = () => {
               </div>
 
               {/* Thumbnail Images */}
-              <div className="flex space-x-2 overflow-x-auto">
+              {/* <div className="flex space-x-2 overflow-x-auto">
                 {product.images.map((image, index) => (
                   <button
                     key={index}
@@ -271,7 +285,7 @@ const ProductDetailsPage = () => {
                     />
                   </button>
                 ))}
-              </div>
+              </div> */}
             </div>
           </motion.div>
 
@@ -441,14 +455,14 @@ const ProductDetailsPage = () => {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold mb-4">Key Features</h3>
-                    <ul className="grid md:grid-cols-2 gap-2">
+                    {/* <ul className="grid md:grid-cols-2 gap-2">
                       {product.features.map((feature, index) => (
                         <li key={index} className="flex items-center space-x-2">
                           <div className="w-2 h-2 bg-primary rounded-full" />
                           <span className="text-gray-600">{feature}</span>
                         </li>
                       ))}
-                    </ul>
+                    </ul> */}
                   </div>
                 </div>
               )}

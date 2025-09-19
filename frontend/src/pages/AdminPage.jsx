@@ -22,44 +22,20 @@ import { AppContext } from "../App"
 import { Link, useParams } from "react-router-dom"
 
 // Mock data
-const mockOrders = [
-  {
-    id: "ORD-001",
-    userId: "user1",
-    userName: "John Doe",
-    userEmail: "john@example.com",
-    date: "2024-01-15",
-    status: "delivered",
-    total: 299.99,
-    items: [{ name: "Premium Wireless Headphones", quantity: 1, price: 299.99 }],
-    shippingAddress: "123 Main St, New York, NY 10001",
-    paymentMethod: "Credit Card",
-  },
-  {
-    id: "ORD-002",
-    userId: "user2",
-    userName: "Jane Smith",
-    userEmail: "jane@example.com",
-    date: "2024-01-14",
-    status: "shipped",
-    total: 199.99,
-    items: [{ name: "Smart Fitness Watch", quantity: 1, price: 199.99 }],
-    shippingAddress: "456 Oak Ave, Los Angeles, CA 90210",
-    paymentMethod: "UPI",
-  },
-  {
-    id: "ORD-003",
-    userId: "user3",
-    userName: "Mike Johnson",
-    userEmail: "mike@example.com",
-    date: "2024-01-13",
-    status: "processing",
-    total: 449.99,
-    items: [{ name: "Ergonomic Office Chair", quantity: 1, price: 449.99 }],
-    shippingAddress: "789 Pine St, Chicago, IL 60601",
-    paymentMethod: "Cash on Delivery",
-  },
-]
+// const mockOrders = [
+//   {
+//     id: "ORD-003",
+//     userId: "user3",
+//     userName: "Mike Johnson",
+//     userEmail: "mike@example.com",
+//     date: "2024-01-13",
+//     status: "processing",
+//     total: 449.99,
+//     items: [{ name: "Ergonomic Office Chair", quantity: 1, price: 449.99 }],
+//     shippingAddress: "789 Pine St, Chicago, IL 60601",
+//     paymentMethod: "Cash on Delivery",
+//   },
+// ]
 
 
 const AdminPage = () => {
@@ -70,12 +46,23 @@ const AdminPage = () => {
   const [editingProduct, setEditingProduct] = useState(null)
   const [showAddProduct, setShowAddProduct] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
-  const [orders] = useState(mockOrders)
+  const [orders] = useState([])
 
   const [users, setUsers] = useState([])
 
   const [products, setProducts] = useState([])
    useEffect(() => {
+    const fetchOrder = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/orders")
+        console.log("Orders API Response:", res.data)
+        setOrders(res.data.orders || [])
+      } catch (err) {
+        console.error(err)  
+        showNotification("Error while fetching orders", "error")
+      }
+    }
+
     const fetchProducts = async () => {
       try {
         const res = await axios.get("http://localhost:5000/products")
@@ -103,7 +90,7 @@ const AdminPage = () => {
       showNotification("Error while fetching users", "error")
     }
   }
-
+    fetchOrder()
     fetchProducts()
     fetchUsers()
   }, [])

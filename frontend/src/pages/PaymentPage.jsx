@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { AppContext } from "../App"
 import { useNavigate } from "react-router-dom"
+import axios from "axios"
 
 const PaymentPage = () => {
   const { user, showNotification, setOrders, removeFromCart } = useContext(AppContext)
@@ -35,74 +36,76 @@ const PaymentPage = () => {
     setShowCardForm(method === 'card')
   }
 
-  const validateCardDetails = () => {
-    if (cardDetails.cardNumber.length !== 16) {
-      showNotification("Card number must be 16 digits", "error")
-      return false
-    }
-    if (cardDetails.cvv.length !== 3) {
-      showNotification("CVV must be 3 digits", "error")
-      return false
-    }
-    if (!cardDetails.expiryDate.match(/^\d{2}\/\d{2}$/)) {
-      showNotification("Expiry date must be in MM/YY format", "error")
-      return false
-    }
-    return true
+  // const validateCardDetails = () => {
+  //   if (cardDetails.cardNumber.length !== 16) {
+  //     showNotification("Card number must be 16 digits", "error")
+  //     return false
+  //   }
+  //   if (cardDetails.cvv.length !== 3) {
+  //     showNotification("CVV must be 3 digits", "error")
+  //     return false
+  //   }
+  //   if (!cardDetails.expiryDate.match(/^\d{2}\/\d{2}$/)) {
+  //     showNotification("Expiry date must be in MM/YY format", "error")
+  //     return false
+  //   }
+  //   return true
+  // }
+  
+  const [orderId, setOrderId] = useState(null)
+  const fetchOrderId = async () => {
+  try {
+    const res = await axios.get(
+      `http://localhost:5000/cart/${localStorage.getItem("userid")}`
+    )
+    setOrderId(res.data.cart._id)   // ✅ correct
+    console.log("Order Id:", res.data.cart._id)
+  } catch (err) {
+    console.error("Error fetching order:", err)
   }
+}
+
+useEffect(() => {
+  fetchOrderId()
+}, [])
 
   const handlePlaceOrder = async () => {
-    if (!paymentMethod) {
-      showNotification("Please select a payment method", "error")
-      return
-    }
+  if (!orderId) {
+    showNotification("Cart not found", "error")
+    return
+  }
 
-    if (paymentMethod === 'card' && !validateCardDetails()) {
-      return
-    }
-
+  try {
     setIsProcessing(true)
 
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Order status update API
+    const res = await axios.put(
+      `http://localhost:5000/orders/status/update/${orderId}`,
+      {
+        orderStatus: "Placed",
+        paymentStatus: "Paid",
+      }
+    )
 
-    // Create new order
-    const newOrder = {
-      id: Date.now(),
-      userId: user.username,
-      userName: user.name || user.username,
-      products: checkoutItems,
-      total: finalTotal,
-      status: 'processing',
-      paymentMethod: paymentMethod.toUpperCase(),
-      orderDate: new Date().toISOString().split('T')[0],
-      deliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-    }
+    console.log("Order updated:", res.data.order)
 
-    // Add order to context
-    setOrders(prev => [...prev, newOrder])
+    // Checkout clear
+    localStorage.removeItem("checkoutItems")
 
-    // Remove items from cart
-    checkoutItems.forEach(item => {
-      removeFromCart(item.id)
-    })
+    showNotification("Order placed successfully! Cash on Delivery", "success")
 
-    // Clear checkout items
-    localStorage.removeItem('checkoutItems')
-
+    // Redirect after short delay
+    setTimeout(() => navigate(`/${localStorage.getItem("userid")}`), 1500)
+  } catch (err) {
+    console.error("Error placing order:", err)
+    showNotification("Failed to place order", "error")
+  } finally {
     setIsProcessing(false)
-
-    if (paymentMethod === 'cod') {
-      showNotification("Order placed successfully! Cash on Delivery", "success")
-    } else {
-      showNotification("Payment successful! Order placed", "success")
-    }
-
-    // Redirect to user page after delay
-    setTimeout(() => {
-      navigate('/user')
-    }, 1500)
   }
+}
+
+
+
 
   if (checkoutItems.length === 0) {
     return (
@@ -144,7 +147,7 @@ const PaymentPage = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* UPI Payment */}
-                <div 
+                {/* <div 
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                     paymentMethod === 'upi' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
                   }`}
@@ -157,10 +160,10 @@ const PaymentPage = () => {
                       <p className="text-sm text-gray-600">Pay using UPI apps like GPay, PhonePe, Paytm</p>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Net Banking */}
-                <div 
+                {/* <div 
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                     paymentMethod === 'netbanking' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
                   }`}
@@ -173,10 +176,10 @@ const PaymentPage = () => {
                       <p className="text-sm text-gray-600">Pay directly from your bank account</p>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Credit/Debit Card */}
-                <div 
+                {/* <div 
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                     paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
                   }`}
@@ -189,7 +192,7 @@ const PaymentPage = () => {
                       <p className="text-sm text-gray-600">Visa, Mastercard, RuPay accepted</p>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Cash on Delivery */}
                 <div 
@@ -309,30 +312,24 @@ const PaymentPage = () => {
                   </div>
                 </div>
 
-                <Button 
+                <Button
                   onClick={handlePlaceOrder}
                   className="w-full bg-blue-600 hover:bg-blue-700"
-                  disabled={!paymentMethod || isProcessing}
+                  disabled={isProcessing}
                 >
                   {isProcessing ? (
                     <div className="flex items-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Processing...
                     </div>
-                  ) : paymentMethod === 'cod' ? (
+                  ) : (
                     <>
                       <CheckCircle className="w-4 h-4 mr-2" />
                       Place Order
                     </>
-                  ) : paymentMethod ? (
-                    <>
-                      <ArrowRight className="w-4 h-4 mr-2" />
-                      Pay Now
-                    </>
-                  ) : (
-                    'Select Payment Method'
                   )}
                 </Button>
+
               </CardContent>
             </Card>
           </div>

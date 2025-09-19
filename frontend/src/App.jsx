@@ -405,7 +405,7 @@ if (products && products.length > 0) {
                   <div key={product.id} className="w-full flex-shrink-0">
                     <div
                       className="relative h-80 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 cursor-pointer group overflow-hidden"
-                      onClick={() => handleProductClick(product.id)}
+                      onClick={() => handleProductClick(product._id)}
                     >
                       <div className="absolute inset-0 bg-black bg-opacity-40"></div>
                       <img
@@ -503,9 +503,10 @@ if (products && products.length > 0) {
                 product={product}
                 onAddToCart={addToCart}
                 onToggleWishlist={toggleWishlist}
-                isInWishlist={wishlistItems.some(item => item.id === product.id)}
-                onProductClick={handleProductClick}
+                isInWishlist={wishlistItems.some(item => String(item.id) === String(product._id))}
+                onProductClick={() => handleProductClick(product._id)}
               />
+
             </motion.div>
           ))}
         </div>

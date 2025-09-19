@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema({
   id: {
-    type: String,   // storing manual generated id (like your example)
+    type: String,   
     required: true
   },
   name: {
@@ -29,7 +29,7 @@ const orderSchema = new mongoose.Schema({
     required: true
   },
   products: {
-    type: [productSchema],   // 👈 array of product subdocuments
+    type: [productSchema], 
     default: []
   },
   deliveryAddress: {
@@ -42,17 +42,17 @@ const orderSchema = new mongoose.Schema({
   },
   paymentType: {
     type: String,
-    enum: ["Cash", "Card", "UPI"],
+    enum: ["Cash"],
     default: "Cash"
   },
   paymentStatus: {
     type: String,
-    enum: ["Pending", "Completed", "Failed"],
+    enum: ["Pending", "Paid"],
     default: "Pending"
   },
   orderStatus: {
     type: String,
-    enum: ["Cart", "Placed", "Shipped", "Delivered", "Cancelled"],
+    enum: ["Cart", "Placed", "Shipped", "Delivered"],
     default: "Cart"
   }
 });

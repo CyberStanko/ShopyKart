@@ -106,6 +106,7 @@ router.get('/cart/:userId', async (req, res) => {
     try {
         const { userId } = req.params;
         const order = await Order.findOne({ userId, orderStatus: 'Cart' });
+        console.log(order);
         if (!order) {
             return res.status(404).json({ error: 'Cart not found' });
         }
@@ -143,6 +144,34 @@ router.put('/cart/update/:userId/:productId', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+  // Update order status + payment status
+router.put('/orders/status/update/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { orderStatus, paymentStatus } = req.body
+
+    console.log("Incoming update request for OrderId:", id)
+
+    const updatedOrder = await Order.findByIdAndUpdate(
+      id,
+      { orderStatus, paymentStatus },
+      { new: true }
+    )
+
+    if (!updatedOrder) {
+      return res.status(404).json({ error: 'Order not found' })
+    }
+
+    res.json({
+      message: 'Order status updated successfully',
+      order: updatedOrder
+    })
+  } catch (err) {
+    console.error("Error updating order:", err.message)
+    res.status(500).json({ error: err.message })
+  }
+})
 
 
 // Delete Product from cart
